@@ -9,7 +9,7 @@ A set of Python GUI's for running IV sweep characterization on photodiodes using
 * Linux: [Linux GPIB Driver](https://linux-gpib.sourceforge.io)
 
 **Python Dependencies**
-* 'Python 3.x'
-* 'pyvisa'
-* 'pymeasure'
-* 'numpy'
+* `Python 3.x`
+* `pyvisa`
+* `pymeasure`
+* `numpy`
