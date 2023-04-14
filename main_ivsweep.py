@@ -4,7 +4,6 @@ log.addHandler(logging.NullHandler())
 
 import sys
 import os
-from time import sleep, strftime
 from procedures import IVSweepProcedure
 from pymeasure.experiment import Results, Worker
 from pymeasure.display.Qt import QtGui
@@ -17,7 +16,7 @@ class MainWindow(ManagedWindow):
     def __init__(self):
         super(MainWindow, self).__init__(
             procedure_class=IVSweepProcedure,
-            inputs=['dev_num', 'pd_type', 'pd_size', 'start', 'stop', 'step', 'delay', 'polarity'],
+            inputs=['dev_num', 'pd_type', 'pd_size', 'start', 'stop', 'step', 'delay', 'nplc', 'polarity'],
             displays=['test_num', 'start', 'stop', 'step', 'delay', 'polarity'],
             x_axis='Reverse Voltage',
             y_axis='Reverse Current',
@@ -33,15 +32,15 @@ class MainWindow(ManagedWindow):
         if procedure is None:
             procedure = self.make_procedure()
 
-        prefix = 'DUT{:s}_{:s}_{:s}_{:s}'.format(
-            procedure.dev_num.value,
-            procedure.pd_type.value,
-            procedure.pd_size.value
-        )
-        # suffix = strftime("%Y%m%d_%H%M%S")
+        # prefix = 'DUT{:s}_{:s}_{:s}_{:s}'.format(
+        #     procedure.dev_num.value,
+        #     procedure.pd_type.value,
+        #     procedure.pd_size.value
+        # )
+        prefix = str(procedure.dev_num)
         filename = unique_filename(
             directory,
-            # prefix=prefix,
+            prefix=prefix+"_",
             # suffix=suffix,
             datetimeformat="%Y%m%d_%H%M%S"
         )

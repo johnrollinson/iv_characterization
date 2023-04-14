@@ -37,11 +37,12 @@ class Keithley6487(Instrument):
     def configure_sweep(self, start, stop, step, delay, nplc, polarity):
         self.write('SYST:ZCH OFF')
         log.info("Zero-checking turned off")
-        self.write('AVER:COUN {:d}'.format(3))
+        self.write('AVER:COUN {:d}'.format(10))
         self.write('AVER:TCON {:s}'.format('rep'))
         self.write('AVER ON')
         self.write('SENS:CURR:NPLC {:0.2f}'.format(nplc))
         self.write('SOUR:VOLT:SWE:STAR {:0.1f}'.format(start))
+        # self.write("CURR:RANG 2E-8")    # Set current range to 200nA
         log.info("Sweep start value set")
         if polarity == 'Anode':
             self.write('SOUR:VOLT:SWE:STOP {:0.1f}'.format(-stop))
@@ -70,7 +71,7 @@ class Keithley6487(Instrument):
 if __name__ == "__main__":
     from pymeasure.adapters import VISAAdapter
 
-    adapter = VISAAdapter("GPIB0::22::INSTR", '@py')
+    adapter = VISAAdapter("GPIB0::22::INSTR", "@py")
     ammeter = Keithley6487(adapter)
 
     ammeter.reset()

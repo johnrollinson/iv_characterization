@@ -17,13 +17,13 @@ class MainWindow(ManagedWindow):
         super(MainWindow, self).__init__(
             procedure_class=PhotoCurrentSweepProcedure,
             inputs=[
-                'dev_num', 'pd_type', 'pd_size', 'start', 'stop', 'step', 'delay', 'nplc', 'polarity', 'source_current'
+                'dev_num', 'pd_type', 'pd_size', 'start', 'stop', 'step', 'polarity', 'source_current'
             ],
-            displays=['test_num', 'start', 'stop', 'step', 'delay', 'polarity', 'source_current'],
+            displays=['test_num', 'start', 'stop', 'step', 'polarity', 'source_current'],
             x_axis='Reverse Voltage Dark',
             y_axis='Reverse Current Dark',
             sequencer=True,
-            sequencer_inputs=['test_num'],
+            sequencer_inputs=['test_num', 'source_current'],
             directory_input=True,
         )
         self.setWindowTitle('Photo Current Sweep')
@@ -34,16 +34,10 @@ class MainWindow(ManagedWindow):
         if procedure is None:
             procedure = self.make_procedure()
 
-        prefix = 'DUT{:s}_{:s}_{:s}_'.format(
-            str(procedure.dev_num),
-            str(procedure.pd_type),
-            str(procedure.pd_size),
-        )
-        # suffix = strftime("%Y%m%d_%H%M%S")
+        prefix = str(procedure.dev_num)
         filename = unique_filename(
             directory,
-            prefix=prefix,
-            # suffix=suffix,
+            prefix=prefix + "_",
             datetimeformat="%Y%m%d_%H%M%S"
         )
 

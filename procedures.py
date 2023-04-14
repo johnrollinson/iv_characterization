@@ -1,9 +1,10 @@
 import logging
+import os
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
 
 from pymeasure.experiment import Procedure, Worker, Results
-from pymeasure.experiment import IntegerParameter, FloatParameter, ListParameter
+from pymeasure.experiment import IntegerParameter, FloatParameter, ListParameter, Parameter
 from pymeasure.adapters import VISAAdapter
 from pymeasure.log import console_log
 from time import sleep
@@ -20,9 +21,10 @@ class IVSweepProcedure(Procedure):
     stop = FloatParameter('Stop Voltage', minimum=0, units='V', default=8.0)
     step = FloatParameter('Step Voltage', minimum=0.001, units='V', default=0.1)
     delay = FloatParameter('Trigger Delay', units='ms', default=10)
+    nplc = IntegerParameter('Integration Time', units='NPLC', maximum=10, minimum=0.1, default=1)
     polarity = ListParameter('Polarity', choices=['Anode', 'Cathode'], default='Anode')
 
-    dev_num = IntegerParameter('DUT', minimum=1)
+    dev_num = Parameter('DUT')
     pd_type = ListParameter('Type', choices=['APD', 'PIN'], default='APD')
     pd_size = ListParameter('Size', choices=['10um', '100um', '500um'], default='10um')
 
@@ -41,7 +43,7 @@ class IVSweepProcedure(Procedure):
         adapter = VISAAdapter("GPIB0::22::INSTR", visa_library='@py', query_delay=0.1)
         self.picoammeter = Keithley6487(adapter)
         self.picoammeter.reset()
-        self.picoammeter.configure_sweep(self.start, self.stop, self.step, self.delay, self.polarity)
+        self.picoammeter.configure_sweep(self.start, self.stop, self.step, self.delay, self.nplc, self.polarity)
         log.info("Configuration complete.")
 
     def execute(self):
@@ -83,15 +85,13 @@ class PhotoCurrentSweepProcedure(Procedure):
     start = FloatParameter('Start Voltage', minimum=0, units='V', default=0.0)
     stop = FloatParameter('Stop Voltage', minimum=0, units='V', default=8.0)
     step = FloatParameter('Step Voltage', minimum=0.001, units='V', default=0.1)
-    delay = FloatParameter('Trigger Delay', units='ms', default=10)
-    nplc = IntegerParameter('Integration Time', units='NPLC', maximum=10, minimum=0.1, default=1)
-    polarity = ListParameter('Polarity', choices=['Anode', 'Cathode'], default='Anode')
+    polarity = ListParameter('Polarity', choices=['Anode', 'Cathode'], default='Cathode')
 
-    dev_num = IntegerParameter('DUT', minimum=1)
+    dev_num = Parameter('DUT')
     pd_type = ListParameter('Type', choices=['APD', 'PIN'], default='APD')
     pd_size = ListParameter('Size', choices=['10um', '100um', '500um'], default='10um')
 
-    source_current = FloatParameter('Optical Source Current', units='mA', maximum=1000)
+    source_current = FloatParameter('Optical Source Current', units='mA', maximum=300)
 
     DATA_COLUMNS = ['Reverse Voltage Dark', 'Reverse Current Dark', 'Timestamp Dark', 'Status Dark',
                     'Reverse Voltage Light', 'Reverse Current Light', 'Timestamp Light', 'Status Light']
@@ -110,10 +110,10 @@ class PhotoCurrentSweepProcedure(Procedure):
         adapter = VISAAdapter("GPIB0::22::INSTR", visa_library='@py', query_delay=0.1)
         self.picoammeter = Keithley6487(adapter)
         self.picoammeter.reset()
-        self.picoammeter.configure_sweep(self.start, self.stop, self.step, self.delay, self.nplc, self.polarity)
+        self.picoammeter.configure_sweep(self.start, self.stop, self.step, 10, 1, self.polarity)
         log.info("Picoammeter configuration complete.")
         log.info("Connecting to power supply and configuring")
-        adapter = VISAAdapter("GPIB0::6::INSTR", visa_library='@py')
+        adapter = VISAAdapter("GPIB0::5::INSTR", visa_library='@py')
         self.power_supply = E364A(adapter)
         self.power_supply.reset()
         self.power_supply.apply(5, self.source_current / 1e3)
@@ -155,7 +155,7 @@ class PhotoCurrentSweepProcedure(Procedure):
                 warm_up = 0
 
         # Perform photo current sweep
-        log.info("Initiating dark current sweep")
+        log.info("Initiating photo current sweep")
         self.picoammeter.start_sweep()
         log.info("Sweep started")
         in_progress = 1
@@ -185,8 +185,8 @@ class PhotoCurrentSweepProcedure(Procedure):
         log.info("Current data emitted")
         log.info("Turning off light source")
         self.power_supply.enabled = "OFF"
-        log.info("Waiting for 30sec in between test.")
-        sleep(30)
+
+        os.system('play -nq -t alsa synth {} sine {}'.format(0.25, 400))
 
 
 if __name__ == "__main__":
