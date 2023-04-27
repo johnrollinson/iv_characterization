@@ -18,6 +18,7 @@ from time import sleep
 import numpy as np
 from keithley import Keithley6487
 from agilent import E364A
+from playsound import playsound
 
 
 class IVSweepProcedure(Procedure):
@@ -118,6 +119,9 @@ class IVSweepProcedure(Procedure):
             for i in range(n_samples)
         ]
         log.info("Data emitted")
+
+        # play ding sound
+        playsound("./ding-idea-40142.mp3")
 
 
 class PhotoCurrentSweepProcedure(Procedure):
@@ -279,7 +283,8 @@ class PhotoCurrentSweepProcedure(Procedure):
         log.info("Turning off light source")
         self.power_supply.enabled = "OFF"
 
-        os.system("play -nq -t alsa synth {} sine {}".format(0.25, 400))
+        # play ding sound
+        playsound("./ding-idea-40142.mp3")
 
 
 if __name__ == "__main__":
