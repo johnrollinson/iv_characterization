@@ -6,6 +6,7 @@ log.addHandler(logging.NullHandler())
 
 from pymeasure.experiment import Procedure, Worker, Results
 from pymeasure.experiment import (
+    BooleanParameter,
     IntegerParameter,
     FloatParameter,
     ListParameter,
@@ -24,20 +25,31 @@ class IVSweepProcedure(Procedure):
     # Number of sweeps to perform
     test_num = IntegerParameter("Sweep Number", default=1)
     start = FloatParameter("Start Voltage", minimum=0, units="V", default=0.0)
-    stop = FloatParameter("Stop Voltage", minimum=0, units="V", default=8.0)
-    step = FloatParameter("Step Voltage", minimum=0.001, units="V", default=0.1)
-    delay = FloatParameter("Trigger Delay", units="ms", default=10)
-    nplc = IntegerParameter(
-        "Integration Time", units="NPLC", maximum=10, minimum=0.1, default=1
+    stop = FloatParameter("Stop Voltage", minimum=0, units="V", default=2.0)
+    step = FloatParameter(
+        "Step Voltage", minimum=0.001, units="V", default=0.05
     )
     polarity = ListParameter(
         "Polarity", choices=["Anode", "Cathode"], default="Anode"
     )
 
     dev_num = Parameter("DUT")
-    pd_type = ListParameter("Type", choices=["APD", "PIN"], default="APD")
-    pd_size = ListParameter(
-        "Size", choices=["10um", "100um", "500um"], default="10um"
+
+    # Optional sweep config setting
+    config_toggle = BooleanParameter("Sweep Config", default=False)
+    delay = FloatParameter(
+        "Trigger Delay", units="ms", default=10, group_by="config_toggle"
+    )
+    n_avg = IntegerParameter(
+        "N Filter Averages", minimum=1, default=3, group_by="config_toggle"
+    )
+    nplc = IntegerParameter(
+        "Integration Time",
+        units="NPLC",
+        maximum=10,
+        minimum=0.1,
+        default=1,
+        group_by="config_toggle",
     )
 
     DATA_COLUMNS = ["Reverse Voltage", "Reverse Current", "Timestamp", "Status"]
@@ -61,6 +73,7 @@ class IVSweepProcedure(Procedure):
             self.start,
             self.stop,
             self.step,
+            self.n_avg,
             self.delay,
             self.nplc,
             self.polarity,
@@ -112,16 +125,31 @@ class PhotoCurrentSweepProcedure(Procedure):
     # Number of sweeps to perform
     test_num = IntegerParameter("Sweep Number", default=1)
     start = FloatParameter("Start Voltage", minimum=0, units="V", default=0.0)
-    stop = FloatParameter("Stop Voltage", minimum=0, units="V", default=8.0)
-    step = FloatParameter("Step Voltage", minimum=0.001, units="V", default=0.1)
+    stop = FloatParameter("Stop Voltage", minimum=0, units="V", default=2.0)
+    step = FloatParameter(
+        "Step Voltage", minimum=0.001, units="V", default=0.05
+    )
     polarity = ListParameter(
         "Polarity", choices=["Anode", "Cathode"], default="Cathode"
     )
 
     dev_num = Parameter("DUT")
-    pd_type = ListParameter("Type", choices=["APD", "PIN"], default="APD")
-    pd_size = ListParameter(
-        "Size", choices=["10um", "100um", "500um"], default="10um"
+
+    # Optional sweep config setting
+    config_toggle = BooleanParameter("Sweep Config", default=True)
+    delay = FloatParameter(
+        "Trigger Delay", units="ms", default=10, group_by="config_toggle"
+    )
+    n_avg = IntegerParameter(
+        "N Filter Averages", minimum=1, default=3, group_by="config_toggle"
+    )
+    nplc = IntegerParameter(
+        "Integration Time",
+        units="NPLC",
+        maximum=10,
+        minimum=0.1,
+        default=1,
+        group_by="config_toggle",
     )
 
     source_current = FloatParameter(
@@ -159,8 +187,9 @@ class PhotoCurrentSweepProcedure(Procedure):
             start=self.start,
             stop=self.stop,
             step=self.step,
-            delay=10,
-            nplc=1,
+            n_avg=self.n_avg,
+            delay=self.delay,
+            nplc=self.nplc,
             polarity=self.polarity,
         )
         log.info("Picoammeter configuration complete.")
