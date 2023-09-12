@@ -18,3 +18,7 @@ For detailed instructions on installing/updating Linux GPIB driver, see: [Nation
 **To-Do**
 * Wrap all of the procedures together in a single interface with the option to
   select which one to launch
+
+## Common Issues
+
+If the script is not connecting the VISA adapter or it is erroring on running an experiment, please double-check the USB connection to the VISA adapter and verify that the PC detects the adapter. Sometimes the USB hub that the adapter is plugged into can be spotty. If the kernel has recently been updated, you may need re-build the NI-VISA driver per the prior directions.
